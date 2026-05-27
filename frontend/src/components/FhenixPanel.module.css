@@ -1,0 +1,131 @@
+.networkBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #0a1628, #0d1f35);
+  border: 1px solid #00e5c830;
+  border-radius: var(--radius);
+  padding: 0.75rem 1.25rem;
+}
+
+.networkLeft, .networkRight {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.fheDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  animation: blink 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+.networkName {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text-0);
+}
+
+.chainId {
+  font-size: 0.7rem;
+  color: var(--accent);
+  background: var(--accent-dim);
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  border: 1px solid var(--accent)20;
+}
+
+.blockNum {
+  font-size: 0.75rem;
+  color: var(--text-1);
+  font-family: var(--font-mono);
+}
+
+.explorerLink {
+  font-size: 0.72rem;
+  color: var(--accent-2);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.explorerLink:hover { color: #9b89ff; }
+
+.hint {
+  font-size: 0.78rem;
+  color: var(--text-1);
+  line-height: 1.6;
+  border-left: 2px solid var(--accent)40;
+  padding-left: 0.75rem;
+}
+
+.walletCard {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.walletLeft, .walletRight {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.walletLabel {
+  font-size: 0.65rem;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.walletAddress {
+  font-size: 0.9rem;
+  color: var(--text-0);
+  font-family: var(--font-mono);
+}
+
+.walletBalance {
+  font-size: 0.9rem;
+  color: var(--accent);
+  font-weight: 600;
+  text-align: right;
+}
+
+.txLog {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.txRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-2);
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.txLabel { color: var(--text-0); }
+.txTime  { color: var(--text-2); font-size: 0.68rem; }
+.txHash  {
+  color: var(--accent-2);
+  text-decoration: none;
+  font-family: var(--font-mono);
+  transition: color 0.15s;
+}
+.txHash:hover { color: #9b89ff; }
