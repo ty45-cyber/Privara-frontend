@@ -1,0 +1,177 @@
+.wrap {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.25rem;
+}
+
+.sub {
+  font-size: 0.78rem;
+  color: var(--text-1);
+}
+
+.revealBtn {
+  background: transparent;
+  border: 1px solid var(--accent)40;
+  color: var(--accent);
+  border-radius: 6px;
+  padding: 0.45rem 1rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.revealBtn:hover {
+  background: var(--accent-dim);
+  box-shadow: 0 0 12px var(--accent)20;
+}
+
+.txGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.txCard {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.txHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.txLabel {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.txStatus {
+  font-size: 0.68rem;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+}
+
+.txRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.txKey {
+  font-size: 0.62rem;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.txVal {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-0);
+}
+
+.encryptedBlob {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-2);
+  font-style: italic;
+  background: var(--bg-3);
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  border: 1px dashed var(--border);
+  display: inline-block;
+}
+
+.ciphertext {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--accent-2);
+  word-break: break-all;
+  opacity: 0.7;
+}
+
+/* Revealed state */
+.revealedAmount {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-top: 0.25rem;
+  padding: 0.6rem;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent)30;
+  border-radius: 4px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.revealKey {
+  font-size: 0.62rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.revealVal {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.insight {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.9rem 1rem;
+}
+
+.insightIcon {
+  font-size: 1.2rem;
+  color: var(--accent);
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.insight p {
+  font-size: 0.78rem;
+  color: var(--text-1);
+  line-height: 1.6;
+}
+
+.insight strong { color: var(--text-0); }

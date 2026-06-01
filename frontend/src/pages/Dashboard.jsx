@@ -2,16 +2,17 @@ import { useState } from 'react'
 import PayrollPanel from '../components/PayrollPanel'
 import GovernancePanel from '../components/GovernancePanel'
 import FhenixPanel from '../components/FhenixPanel'
+import PrivacyStageBar from '../components/PrivacyStageBar'
+import ProofOfPrivacy from '../components/ProofOfPrivacy'
 import styles from './Dashboard.module.css'
 
 const TABS = [
-  { id: 'payroll', label: 'Treasury & Payroll' },
+  { id: 'payroll',    label: 'Treasury & Payroll' },
   { id: 'governance', label: 'Private Governance' },
-  { id: 'fhenix', label: 'On-Chain FHE' },
+  { id: 'fhenix',     label: 'On-Chain FHE' },
 ]
 
-// Load deployed contract addresses from the JSON written by deploy script
-const PAYROLL_ADDRESS = import.meta.env.VITE_PAYROLL_ADDRESS || ''
+const PAYROLL_ADDRESS    = import.meta.env.VITE_PAYROLL_ADDRESS    || ''
 const GOVERNANCE_ADDRESS = import.meta.env.VITE_GOVERNANCE_ADDRESS || ''
 
 export default function Dashboard({ onLogout }) {
@@ -43,9 +44,12 @@ export default function Dashboard({ onLogout }) {
           ))}
         </nav>
 
-        <button className={styles.logout} onClick={onLogout}>
-          End Session
-        </button>
+        <div className={styles.sideFooter}>
+          <div className={styles.stageChip}>Stage 3 — FHE</div>
+          <button className={styles.logout} onClick={onLogout}>
+            End Session
+          </button>
+        </div>
       </aside>
 
       <main className={styles.main}>
@@ -55,7 +59,7 @@ export default function Dashboard({ onLogout }) {
           </h2>
           <div className={styles.badge}>
             <span className={styles.dot} />
-            {active === 'fhenix' ? 'FHE On-Chain' : 'AES-256-GCM Active'}
+            {active === 'fhenix' ? 'CoFHE Active' : 'AES-256-GCM Active'}
           </div>
         </div>
 
@@ -63,10 +67,18 @@ export default function Dashboard({ onLogout }) {
           {active === 'payroll' && <PayrollPanel />}
           {active === 'governance' && <GovernancePanel />}
           {active === 'fhenix' && (
-            <FhenixPanel
-              payrollAddress={PAYROLL_ADDRESS}
-              governanceAddress={GOVERNANCE_ADDRESS}
-            />
+            <>
+              <PrivacyStageBar />
+              <div style={{ marginTop: '1.5rem' }}>
+                <FhenixPanel
+                  payrollAddress={PAYROLL_ADDRESS}
+                  governanceAddress={GOVERNANCE_ADDRESS}
+                />
+              </div>
+              <div style={{ marginTop: '1.5rem' }}>
+                <ProofOfPrivacy />
+              </div>
+            </>
           )}
         </div>
       </main>

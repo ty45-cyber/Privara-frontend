@@ -150,3 +150,21 @@
   padding: 2rem;
   flex: 1;
 }
+.sideFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stageChip {
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid var(--accent)25;
+  border-radius: 20px;
+  padding: 0.3rem 0.75rem;
+}

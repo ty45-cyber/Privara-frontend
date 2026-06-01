@@ -1,116 +1,133 @@
-import { ethers } from "ethers";
+// Uses cofhejs/web — the current maintained Fhenix client SDK.
+// The old fhenixjs package is archived and must not be used.
+import { cofhejs, Encryptable, FheTypes } from "cofhejs/web";
+import { createWalletClient, custom } from "viem";
+import { arbitrumSepolia } from "viem/chains";
 
-const FHENIX_CHAIN_ID = "0x7A1207"; // 8008135 decimal
+// Fhenix CoFHE runs on Arbitrum Sepolia (current testnet)
+// Nitrogen is legacy — we target arb-sepolia for the grant submission
+export const COFHE_CHAIN = arbitrumSepolia;
 
-const FHENIX_NETWORK = {
-  chainId: FHENIX_CHAIN_ID,
-  chainName: "Fhenix Nitrogen Testnet",
+export const FHENIX_NITROGEN = {
+  id: 8008135,
+  name: "Fhenix Nitrogen",
   nativeCurrency: { name: "tFHE", symbol: "tFHE", decimals: 18 },
-  rpcUrls: ["https://api.nitrogen.fhenix.zone"],
-  blockExplorerUrls: ["https://explorer.nitrogen.fhenix.zone"],
+  rpcUrls: { default: { http: ["https://api.nitrogen.fhenix.zone"] } },
+  blockExplorers: {
+    default: {
+      name: "Fhenix Explorer",
+      url: "https://explorer.nitrogen.fhenix.zone",
+    },
+  },
 };
 
-let _provider = null;
-let _signer = null;
+let _client = null;
+let _initialized = false;
 
-export async function connectFhenix() {
-  if (!window.ethereum) throw new Error("MetaMask not found");
+/// Connect wallet and initialize cofhejs.
+/// Switches MetaMask to Arbitrum Sepolia (CoFHE testnet).
+export async function connectCofhe() {
+  if (!window.ethereum) {
+    throw new Error("MetaMask required. Please install it.");
+  }
 
-  await window.ethereum.request({ method: "eth_requestAccounts" });
+  const accounts = await window.ethereum.request({
+    method: "eth_requestAccounts",
+  });
 
-  // Switch / add Fhenix Nitrogen
+  // Switch to Arbitrum Sepolia where CoFHE is deployed
   try {
     await window.ethereum.request({
       method: "wallet_switchEthereumChain",
-      params: [{ chainId: FHENIX_CHAIN_ID }],
+      params: [{ chainId: "0x66EEE" }], // 421614 = Arb Sepolia
     });
   } catch (err) {
     if (err.code === 4902) {
       await window.ethereum.request({
         method: "wallet_addEthereumChain",
-        params: [FHENIX_NETWORK],
+        params: [{
+          chainId: "0x66EEE",
+          chainName: "Arbitrum Sepolia",
+          nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+          rpcUrls: ["https://sepolia-rollup.arbitrum.io/rpc"],
+          blockExplorerUrls: ["https://sepolia.arbiscan.io"],
+        }],
       });
     } else {
       throw err;
     }
   }
 
-  _provider = new ethers.BrowserProvider(window.ethereum);
-  _signer = await _provider.getSigner();
-  return await _signer.getAddress();
+  _client = createWalletClient({
+    chain: COFHE_CHAIN,
+    transport: custom(window.ethereum),
+  });
+
+  // Initialize cofhejs with the browser provider
+  await cofhejs.initialize({
+    provider: window.ethereum,
+    signer: accounts[0],
+  });
+
+  // Create a permit for this session
+  await cofhejs.createPermit();
+  _initialized = true;
+
+  return accounts[0];
 }
 
-export function getProvider() {
-  if (!_provider) throw new Error("Not connected — call connectFhenix() first");
-  return _provider;
+export function isConnected() {
+  return _initialized;
 }
 
-export function getSigner() {
-  if (!_signer) throw new Error("Not connected — call connectFhenix() first");
-  return _signer;
+export function getClient() {
+  return _client;
 }
 
-/**
- * Encrypt a numeric amount for Fhenix FHE contracts.
- * Returns the tuple structure expected by the contract ABI: { data: Uint8Array }
- */
-export async function encryptAmount(amount) {
-  // Encode as 32-byte big-endian uint256, then wrap in the tuple the ABI expects
-  const encoded = ethers.AbiCoder.defaultAbiCoder().encode(
-    ["uint256"],
-    [Math.round(amount * 1e6)] // scale to 6 decimal places (USDC-style)
+/// Encrypt a payroll amount as uint128.
+/// Amount is in smallest unit (e.g. USDC with 6 decimals: 5000 USDC = 5000_000000n).
+export async function encryptPayrollAmount(amountFloat) {
+  if (!_initialized) throw new Error("cofhejs not initialized");
+  const microUnits = BigInt(Math.round(amountFloat * 1_000_000));
+  const [encrypted] = await cofhejs.encrypt(
+    (step) => console.debug(`[cofhejs encrypt] ${step}`),
+    [Encryptable.uint128(microUnits)]
   );
-  return { data: ethers.getBytes(encoded) };
+  return encrypted;
 }
 
-/**
- * Encrypt a vote value for Fhenix FHE governance contracts.
- * yes=1, no=0, abstain=2
- */
-export async function encryptVote(vote) {
-  const voteMap = { yes: 1, no: 0, abstain: 2 };
-  const value = voteMap[vote] ?? 0;
-  const encoded = ethers.AbiCoder.defaultAbiCoder().encode(["uint8"], [value]);
-  return { data: ethers.getBytes(encoded) };
+/// Encrypt a vote value as uint8: 1=yes, 0=no, 2=abstain.
+export async function encryptVote(voteStr) {
+  if (!_initialized) throw new Error("cofhejs not initialized");
+  const codes = { yes: 1n, no: 0n, abstain: 2n };
+  const code = codes[voteStr];
+  if (code === undefined) throw new Error(`Unknown vote: ${voteStr}`);
+  const [encrypted] = await cofhejs.encrypt(
+    () => {},
+    [Encryptable.uint8(code)]
+  );
+  return encrypted;
 }
 
-/**
- * Build a viewing permit for sealed/private data retrieval.
- */
-export async function buildPermit(contractAddress) {
-  const signer = getSigner();
-  const address = await signer.getAddress();
-
-  const domain = {
-    name: "Fhenix Permission",
-    version: "1",
-    chainId: 8008135,
-    verifyingContract: contractAddress,
-  };
-
-  const types = {
-    Permission: [
-      { name: "issuer", type: "address" },
-      { name: "expiry", type: "uint256" },
-    ],
-  };
-
-  const expiry = Math.floor(Date.now() / 1000) + 3600; // 1 hour
-  const value = { issuer: address, expiry };
-
-  const signature = await signer.signTypedData(domain, types, value);
-  const { v, r, s } = ethers.Signature.from(signature);
-
-  // Generate an ephemeral sealing key pair (32 random bytes as placeholder)
-  const sealingKey = ethers.randomBytes(32);
-
-  return {
-    sealingKey,
-    signature: ethers.concat([r, s, ethers.toBeHex(v, 1)]),
-    issuer: address,
-  };
+/// Unseal a sealed output from a contract call.
+export async function unsealAmount(ctHash) {
+  if (!_initialized) throw new Error("cofhejs not initialized");
+  const result = await cofhejs.unseal(ctHash, FheTypes.Uint128);
+  if (!result.success) throw new Error("Unseal failed");
+  // Convert back from micro-units to display units
+  return Number(result.data) / 1_000_000;
 }
 
-export function explorerTxUrl(txHash) {
+/// Get the current permit's Permission struct for contract calls.
+export function getPermission() {
+  const permit = cofhejs.getPermit();
+  if (!permit || !permit.data) throw new Error("No active permit");
+  return permit.data.getPermission();
+}
+
+export function explorerUrl(txHash, chain = "arb-sepolia") {
+  if (chain === "arb-sepolia") {
+    return `https://sepolia.arbiscan.io/tx/${txHash}`;
+  }
   return `https://explorer.nitrogen.fhenix.zone/tx/${txHash}`;
 }
