@@ -8,7 +8,7 @@ import {
   explorerUrl,
 } from '../fhenix'
 import { api } from '../api'
-import { getMockTxLog, getMockWallet } from './mock/mockApi.js'
+import { getMockTxLog, getMockWallet } from '../mock/mockApi.js'
 import styles  from './Panel.module.css'
 import fxStyles from './FhenixPanel.module.css'
 
