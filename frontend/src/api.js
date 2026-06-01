@@ -1,4 +1,16 @@
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+// Set VITE_MOCK=true in .env to use mock API (no backend needed)
+// Set VITE_MOCK=false and VITE_API_URL=https://... for live backend
+
+import { api as mockApi } from './mock/mockApi.js'
+
+const USE_MOCK = import.meta.env.VITE_MOCK === 'true'
+  || !import.meta.env.VITE_API_URL
+
+if (USE_MOCK) {
+  console.info('[Privara] Running in MOCK mode — no backend required')
+}
+
+const BASE = import.meta.env.VITE_API_URL || ''
 
 function token() {
   return localStorage.getItem('privara_token')
@@ -16,7 +28,7 @@ async function request(path, options = {}) {
   return data
 }
 
-export const api = {
+export const api = USE_MOCK ? mockApi : {
   register: (body) => request('/api/auth/register', { method: 'POST', body: JSON.stringify(body) }),
   login:    (body) => request('/api/auth/login',    { method: 'POST', body: JSON.stringify(body) }),
 
@@ -32,17 +44,21 @@ export const api = {
     vote:   (body)=> request('/api/governance/vote', { method: 'POST', body: JSON.stringify(body) }),
   },
 
-  blockchain: {
-    network:  ()      => request('/api/blockchain/network'),
-    verifyTx: (txHash)=> request('/api/blockchain/verify-tx', {
-      method: 'POST',
-      body: JSON.stringify({ tx_hash: txHash }),
-    }),
-    balance: (address) => request(`/api/blockchain/balance?address=${address}`),
-  },
-
   audit: {
     generateReport: () => request('/api/audit/report', { method: 'POST' }),
     listReports:    () => request('/api/audit/reports'),
+  },
+
+  intents: {
+    create: (body)=> request('/api/intents', { method: 'POST', body: JSON.stringify(body) }),
+    list:   ()    => request('/api/intents'),
+  },
+
+  blockchain: {
+    network:  ()      => request('/api/blockchain/network'),
+    verifyTx: (hash)  => request('/api/blockchain/verify-tx', {
+      method: 'POST', body: JSON.stringify({ tx_hash: hash }),
+    }),
+    balance: (address) => request(`/api/blockchain/balance?address=${address}`),
   },
 }
